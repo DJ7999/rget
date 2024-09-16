@@ -1,30 +1,30 @@
-use indicatif::{ProgressBar, ProgressStyle};
 use clap::{Arg, Command};
+use console::style;
+use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::header::{CONTENT_LENGTH, CONTENT_TYPE};
 use reqwest::Client;
+use std::error::Error;
 use std::fs::File;
 use std::io::{self, Write};
-use std::error::Error;
-use url::Url;
-use console::style;
 use tokio::runtime::Builder;
+use url::Url;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = Command::new("Rget")
         .version("0.1.0")
         .author("Rohit Joshi <bhdream000@gmail.com>")
         .about("wget clone written in Rust")
-        .arg(Arg::new("URL")
-                 .required(true)
-                 .index(1)
-                 .help("URL to download"))
+        .arg(
+            Arg::new("URL")
+                .required(true)
+                .index(1)
+                .help("URL to download"),
+        )
         .get_matches();
     let url = matches.get_one::<String>("URL").unwrap();
 
     // Create a new runtime to execute the async function
-    let rt = Builder::new_current_thread()
-        .enable_all()
-        .build()?;
+    let rt = Builder::new_current_thread().enable_all().build()?;
     rt.block_on(download(url, false))?;
     Ok(())
 }
@@ -57,20 +57,32 @@ async fn download(target: &str, quiet_mode: bool) -> Result<(), Box<dyn Error>> 
     let client = Client::new();
     let mut resp = client.get(url).send().await?;
 
-    println!("{}", format!("HTTP request sent... {}", style(format!("{}", resp.status())).green()));
+    println!(
+        "{}",
+        format!(
+            "HTTP request sent... {}",
+            style(format!("{}", resp.status())).green()
+        )
+    );
 
     if resp.status().is_success() {
         let headers = resp.headers().clone();
-        let ct_len = headers.get(CONTENT_LENGTH).and_then(|val| val.to_str().ok()?.parse().ok());
+        let ct_len = headers
+            .get(CONTENT_LENGTH)
+            .and_then(|val| val.to_str().ok()?.parse().ok());
         let ct_type = headers.get(CONTENT_TYPE).and_then(|val| val.to_str().ok());
 
         match ct_len {
             Some(len) => {
-                println!("Length: {} ({})", style(len).green(), style(format!("{}", len)).red());
-            },
+                println!(
+                    "Length: {} ({})",
+                    style(len).green(),
+                    style(format!("{}", len)).red()
+                );
+            }
             None => {
                 println!("Length: {}", style("unknown").red());
-            },
+            }
         }
 
         if let Some(ct_type) = ct_type {
