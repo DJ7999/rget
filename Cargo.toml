@@ -1,0 +1,12 @@
+[package]
+name = "rget"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = "4.5.17"
+console = "0.15.8"
+indicatif = "0.17.8"
+reqwest = "0.12.7"
+tokio = "1.40.0"
+url = "2.5.2"
